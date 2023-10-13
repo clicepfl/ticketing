@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+ Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="1.0.0-beta" use-changelog="false" last-position="0,0" last-zoom="1" max-obj-count="4"
+	 default-schema="public" default-owner="postgres"
+	 layers="Default layer"
+	 active-layers="0"
+	 layer-name-colors="#000000"
+	 layer-rect-colors="#b4b4b4"
+	 show-layer-names="false" show-layer-rects="false">
+<database name="new_database" is-template="false" allow-conns="true">
+</database>
+
+<schema name="public" layers="0" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<table name="events" layers="0" collapse-mode="2" max-obj-count="3" z-value="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="660" y="380"/>
+	<column name="uid" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="100"/>
+	</column>
+	<column name="date" not-null="true">
+		<type name="date" length="0"/>
+	</column>
+	<constraint name="event_pk" type="pk-constr" table="public.events">
+		<columns names="uid" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="participants" layers="0" collapse-mode="2" max-obj-count="8" z-value="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1020" y="320"/>
+	<column name="uid" not-null="true" default-value="gen_random_uuid()">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="event_uid" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="sciper" not-null="true">
+		<type name="varchar" length="10"/>
+	</column>
+	<column name="email" not-null="true">
+		<type name="varchar" length="100"/>
+	</column>
+	<column name="first_name" not-null="true">
+		<type name="varchar" length="50"/>
+	</column>
+	<column name="surname" not-null="true">
+		<type name="varchar" length="50"/>
+	</column>
+	<column name="group">
+		<type name="varchar" length="50"/>
+	</column>
+	<constraint name="participant_pk" type="pk-constr" table="public.participants">
+		<columns names="uid" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<constraint name="participant_event_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="public.events" table="public.participants">
+	<columns names="event_uid" ref-type="src-columns"/>
+	<columns names="uid" ref-type="dst-columns"/>
+</constraint>
+
+<relationship name="rel_participants_events" type="relfk" layers="0"
+	 src-table="public.participants"
+	 dst-table="public.events" reference-fk="participant_event_fk"
+	 src-required="false" dst-required="true"/>
+
+</dbmodel>
