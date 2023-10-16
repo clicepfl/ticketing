@@ -1,8 +1,27 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
+import { Dialog } from "@/components/Dialog";
+import QRCodeScanner from "@/components/QRCodeScanner";
+import { useState } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+
+function onScanSuccess(decodedText: any, decodedResult: any) {
+  // Stop scanning?
+  console.log(`Scan result: ${decodedText}`, decodedResult);
+}
+
+function onScanFailure(error: any) {
+  console.log(`Scan result: ${error}`);
+}
 
 export default function Home() {
-  return <p>Hello world!</p>;
+  const [decodedResults, setDecodedResults] = useState([]);
+
+  return (
+    <div>
+      <QRCodeScanner
+        qrCodeSuccessCallback={onScanSuccess}
+        qrCodeErrorCallback={onScanFailure}
+      />
+      <Dialog />
+    </div>
+  );
 }
