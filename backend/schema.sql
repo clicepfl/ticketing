@@ -19,6 +19,7 @@ CREATE TABLE participants (
   "first_name" varchar(50) NOT NULL,
   "surname" varchar(50) NOT NULL,
   "group" varchar(50),
+  "has_checked_in" boolean NOT NULL DEFAULT false,
   CONSTRAINT participant_pk PRIMARY KEY (uid)
 );
 
