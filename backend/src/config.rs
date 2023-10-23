@@ -10,6 +10,14 @@ pub struct Config {
     pub database_url: String,
     #[envconfig(from = "BASE_URI", default = "/")]
     pub base_uri: String,
+    #[envconfig(from = "SMTP_MAIL")]
+    pub smtp_email: String,
+    #[envconfig(from = "SMTP_USER")]
+    pub smtp_user: String,
+    #[envconfig(from = "SMTP_PASSWORD")]
+    pub smtp_password: String,
+    #[envconfig(from = "SMTP_SERVER")]
+    pub smtp_server: String,
 }
 
 static CONFIG: OnceLock<Config> = OnceLock::new();

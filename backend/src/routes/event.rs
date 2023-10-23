@@ -93,7 +93,7 @@ pub async fn preview_email(
         description: Some("No mail template".to_owned()),
     })?;
 
-    let mail = generate_mail(template, Uuid::new_v4()).map_err(|s| Error {
+    let mail = generate_mail(template.as_str(), Uuid::new_v4()).map_err(|s| Error {
         status: 500,
         description: Some(s),
     })?;
