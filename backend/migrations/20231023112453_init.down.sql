@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS participants DROP CONSTRAINT IF EXISTS participant_event_fk;
+DROP TABLE IF EXISTS participants;
+DROP TABLE IF EXISTS events;

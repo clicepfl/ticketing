@@ -27,6 +27,9 @@ async fn launch() -> _ {
         .await
         .unwrap();
 
+    // Run migrations
+    sqlx::migrate!().run(&pool).await.unwrap();
+
     // Launch webserver
     rocket::build()
         .manage(pool)
