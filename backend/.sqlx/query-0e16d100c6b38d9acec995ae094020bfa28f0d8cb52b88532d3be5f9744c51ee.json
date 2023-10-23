@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE participants SET has_checked_in = true WHERE uid = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0e16d100c6b38d9acec995ae094020bfa28f0d8cb52b88532d3be5f9744c51ee"
+}

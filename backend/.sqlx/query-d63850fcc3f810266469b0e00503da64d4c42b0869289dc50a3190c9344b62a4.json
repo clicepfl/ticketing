@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM participants WHERE event_uid = $1 AND uid = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_uid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "sciper",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "first_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "surname",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "group",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "has_checked_in",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "d63850fcc3f810266469b0e00503da64d4c42b0869289dc50a3190c9344b62a4"
+}
