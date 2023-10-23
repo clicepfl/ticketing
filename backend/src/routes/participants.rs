@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{models::Participant, DB};
 
-use super::{login::RequireLogin, map_database_error, Error};
+use super::{login::RequireLogin, Error};
 
 #[derive(Serialize, Deserialize)]
 pub struct ParticipantForm {
@@ -15,7 +15,7 @@ pub struct ParticipantForm {
     pub group: String,
 }
 
-#[get("/event/<uid>/participants")]
+#[get("/events/<uid>/participants")]
 pub async fn get_participants(uid: Uuid, db: &DB) -> Result<Json<Vec<Participant>>, Error> {
     sqlx::query_as!(
         Participant,
@@ -25,10 +25,10 @@ pub async fn get_participants(uid: Uuid, db: &DB) -> Result<Json<Vec<Participant
     .fetch_all(db.inner())
     .await
     .map(Json)
-    .map_err(map_database_error)
+    .map_err(Error::from)
 }
 
-#[put("/event/<uid>/participants", format = "json", data = "<participants>")]
+#[put("/events/<uid>/participants", format = "json", data = "<participants>")]
 pub async fn put_participants(
     uid: Uuid,
     participants: Json<Vec<ParticipantForm>>,
@@ -46,13 +46,13 @@ pub async fn put_participants(
             p.first_name,
             p.surname,
             p.group
-        ).execute( db.inner()).await.map_err(map_database_error)?;
+        ).execute( db.inner()).await?;
     }
 
     Ok(())
 }
 
-#[delete("/event/<event_uid>/participants/<participant_uid>")]
+#[delete("/events/<event_uid>/participants/<participant_uid>")]
 pub async fn delete_participants(
     event_uid: Uuid,
     participant_uid: Option<Uuid>,
@@ -65,12 +65,12 @@ pub async fn delete_participants(
         participant_uid
     )
     .execute(db.inner())
-    .await
-    .map_err(map_database_error)?;
+    .await?;
+
     Ok(())
 }
 
-#[post("/event/<event_uid>/participatns/<participant_uid>/checkin")]
+#[post("/events/<event_uid>/participants/<participant_uid>/checkin")]
 pub async fn checkin(
     event_uid: Uuid,
     participant_uid: Uuid,
@@ -83,16 +83,14 @@ pub async fn checkin(
         participant_uid
     )
     .fetch_one(db.inner())
-    .await
-    .map_err(map_database_error)?;
+    .await?;
 
     sqlx::query!(
         "UPDATE participants SET has_checked_in = true WHERE uid = $1",
         participant_uid
     )
     .execute(db.inner())
-    .await
-    .map_err(map_database_error)?;
+    .await?;
 
     Ok(Json(Some(participant)))
 }

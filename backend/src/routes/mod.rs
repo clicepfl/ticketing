@@ -1,16 +1,49 @@
-use rocket::http::Status;
+use std::io::Cursor;
+
+use rocket::{
+    http::{ContentType, Status},
+    response::Responder,
+    Response,
+};
+use serde::Serialize;
 
 pub mod event;
 pub mod login;
 pub mod participants;
 
-pub type Error = (Status, String);
+#[derive(Serialize)]
+pub struct Error {
+    pub status: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
 
-pub fn map_database_error(error: sqlx::Error) -> Error {
-    let status = match &error {
-        sqlx::Error::RowNotFound => Status::NotFound,
-        _ => Status::InternalServerError,
-    };
+impl From<sqlx::Error> for Error {
+    fn from(value: sqlx::Error) -> Self {
+        let status = match &value {
+            sqlx::Error::RowNotFound => Status::NotFound,
+            _ => Status::InternalServerError,
+        };
 
-    (status, error.to_string())
+        Self {
+            status: status.code,
+            description: Some(value.to_string()),
+        }
+    }
+}
+
+impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
+    fn respond_to(self, _: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
+        let json = serde_json::to_string(&self);
+
+        if let Ok(json) = json {
+            Response::build()
+                .header(ContentType::new("application", "json"))
+                .sized_body(json.len(), Cursor::new(json))
+                .status(Status { code: self.status })
+                .ok()
+        } else {
+            Response::build().status(Status { code: self.status }).ok()
+        }
+    }
 }

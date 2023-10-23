@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{models::Event, DB};
 
-use super::{login::RequireLogin, map_database_error, Error};
+use super::{login::RequireLogin, Error};
 
 #[derive(Deserialize)]
 pub struct EventForm {
@@ -19,7 +19,7 @@ pub async fn get_events(pool: &DB, _login: RequireLogin) -> Result<Json<Vec<Even
         .fetch_all(pool.inner())
         .await
         .map(Json)
-        .map_err(map_database_error)
+        .map_err(Error::from)
 }
 
 #[post("/events", format = "json", data = "<form>")]
@@ -41,7 +41,7 @@ pub async fn post_event(
     .fetch_one(pool.inner())
     .await
     .map(Json)
-    .map_err(map_database_error)
+    .map_err(Error::from)
 }
 
 #[patch("/events/<uid>", format = "json", data = "<form>")]
@@ -66,7 +66,7 @@ pub async fn patch_event(
     .fetch_one(pool.inner())
     .await
     .map(Json)
-    .map_err(map_database_error)
+    .map_err(Error::from)
 }
 
 #[delete("/events/<uid>")]
@@ -75,5 +75,5 @@ pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<
         .execute(pool.inner())
         .await
         .map(|_| ())
-        .map_err(map_database_error)
+        .map_err(Error::from)
 }

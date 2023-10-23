@@ -1,4 +1,5 @@
-use rocket::routes;
+use rocket::{catch, catchers, http::Status, routes, serde::json::Json, Request};
+use routes::Error;
 
 use crate::config::config;
 
@@ -7,6 +8,14 @@ pub mod models;
 pub mod routes;
 
 type DB = rocket::State<sqlx::PgPool>;
+
+#[catch(default)]
+fn default(status: Status, _: &Request) -> Json<Error> {
+    Json(Error {
+        status: status.code,
+        description: None,
+    })
+}
 
 #[rocket::launch]
 async fn launch() -> _ {
@@ -19,16 +28,21 @@ async fn launch() -> _ {
         .unwrap();
 
     // Launch webserver
-    rocket::build().manage(pool).mount(
-        "/",
-        routes![
-            routes::login::login,
-            routes::event::get_events,
-            routes::event::post_event,
-            routes::event::patch_event,
-            routes::event::delete_event,
-            routes::participants::get_participants,
-            routes::participants::put_participants,
-        ],
-    )
+    rocket::build()
+        .manage(pool)
+        .register("/", catchers![default])
+        .mount(
+            "/",
+            routes![
+                routes::login::login,
+                routes::event::get_events,
+                routes::event::post_event,
+                routes::event::patch_event,
+                routes::event::delete_event,
+                routes::participants::get_participants,
+                routes::participants::put_participants,
+                routes::participants::delete_participants,
+                routes::participants::checkin,
+            ],
+        )
 }
