@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 const qrcodeRegionId = "html5qrcode-region";
 
-const QRCodeScanner = (props: {qrCodeSuccessCallback: QrcodeSuccessCallback; qrCodeErrorCallback: QrcodeErrorCallback }) => {
+const QRCodeScanner = (props: {qrCodeSuccessCallback: QrcodeSuccessCallback; qrCodeErrorCallback: QrcodeErrorCallback | undefined}) => {
 
     useEffect(() => {
         // when component mounts
@@ -26,7 +26,7 @@ const QRCodeScanner = (props: {qrCodeSuccessCallback: QrcodeSuccessCallback; qrC
     }, []);
 
     return (
-        <div id={qrcodeRegionId} />
+        <div id={qrcodeRegionId} className="absolute h-full" />
     );
 };
 

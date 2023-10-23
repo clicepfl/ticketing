@@ -2,18 +2,21 @@ import { Dialog } from "@/components/Dialog";
 import QRCodeScanner from "@/components/QRCodeScanner";
 import { useState } from "react";
 
-
-function onScanSuccess(decodedText: any, decodedResult: any) {
-  // Stop scanning?
-  console.log(`Scan result: ${decodedText}`, decodedResult);
-}
-
-function onScanFailure(error: any) {
-  console.log(`Scan result: ${error}`);
-}
+type Values = {};
 
 export default function Home() {
   const [decodedResults, setDecodedResults] = useState([]);
+  const [dialogValues, setDialogValues] = useState(null as Values | null);
+
+  function onScanSuccess(decodedText: any, decodedResult: any) {
+    // Stop scanning?
+    setDialogValues(null);
+    console.log(`Scan result: ${decodedText}`, decodedResult);
+  }
+  
+  function onScanFailure(error: any) {
+    console.log(`Scan result: ${error}`);
+  }
 
   return (
     <div>
@@ -21,7 +24,7 @@ export default function Home() {
         qrCodeSuccessCallback={onScanSuccess}
         qrCodeErrorCallback={onScanFailure}
       />
-      <Dialog />
+      <Dialog values={dialogValues} setValues={setDialogValues} />
     </div>
   );
 }
