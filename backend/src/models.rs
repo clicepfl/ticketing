@@ -9,6 +9,7 @@ pub struct Event {
     pub date: NaiveDate,
     pub name: String,
     pub mail_sent: bool,
+    pub mail_template: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, FromRow)]

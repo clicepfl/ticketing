@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use rocket::{delete, get, patch, post, serde::json::Json};
+use rocket::{delete, get, patch, post, serde::json::Json, http::ContentType};
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -11,6 +11,7 @@ use super::{login::RequireLogin, Error};
 pub struct EventForm {
     pub date: NaiveDate,
     pub name: String,
+    pub mail_template: Option<String>,
 }
 
 #[get("/events")]
@@ -31,12 +32,13 @@ pub async fn post_event(
     sqlx::query_as!(
         Event,
         r#"
-        INSERT INTO events(date, name) 
-        VALUES($1, $2)
+        INSERT INTO events(date, name, mail_template) 
+        VALUES($1, $2, $3)
         RETURNING *
         "#,
         form.date,
-        form.name
+        form.name,
+        form.mail_template,
     )
     .fetch_one(pool.inner())
     .await
@@ -76,4 +78,8 @@ pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<
         .await
         .map(|_| ())
         .map_err(Error::from)
+}
+
+pub async fn preview_email(_login: RequireLogin) ->Result<(ContentType, String), Error> {
+
 }

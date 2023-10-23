@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS events (
   "uid" uuid NOT NULL DEFAULT gen_random_uuid(),
   "name" varchar(100) NOT NULL,
   "date" date NOT NULL,
+  "mail_template" text,
   "mail_sent" boolean NOT NULL DEFAULT false,
   CONSTRAINT event_pk PRIMARY KEY (uid)
 );

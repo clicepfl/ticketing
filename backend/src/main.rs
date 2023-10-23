@@ -4,6 +4,7 @@ use routes::Error;
 use crate::config::config;
 
 pub mod config;
+pub mod mail;
 pub mod models;
 pub mod routes;
 
