@@ -32,7 +32,7 @@ async fn launch() -> _ {
         .manage(pool)
         .register("/", catchers![default])
         .mount(
-            "/",
+            config().base_uri.as_str(),
             routes![
                 routes::login::login,
                 routes::event::get_events,

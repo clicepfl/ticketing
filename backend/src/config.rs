@@ -8,6 +8,8 @@ pub struct Config {
     pub admin_token: String,
     #[envconfig(from = "DATABASE_URL")]
     pub database_url: String,
+    #[envconfig(from = "BASE_URI", default = "/")]
+    pub base_uri: String,
 }
 
 static CONFIG: OnceLock<Config> = OnceLock::new();
