@@ -43,6 +43,7 @@ async fn launch() -> _ {
                 routes::event::post_event,
                 routes::event::patch_event,
                 routes::event::delete_event,
+                routes::event::preview_email,
                 routes::participants::get_participants,
                 routes::participants::put_participants,
                 routes::participants::delete_participants,

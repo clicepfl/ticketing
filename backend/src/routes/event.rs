@@ -1,9 +1,9 @@
 use chrono::NaiveDate;
-use rocket::{delete, get, patch, post, serde::json::Json, http::ContentType};
+use rocket::{delete, get, http::ContentType, patch, post, serde::json::Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{models::Event, DB};
+use crate::{mail::generate_mail, models::Event, DB};
 
 use super::{login::RequireLogin, Error};
 
@@ -80,6 +80,23 @@ pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<
         .map_err(Error::from)
 }
 
-pub async fn preview_email(_login: RequireLogin) ->Result<(ContentType, String), Error> {
+#[get("/events/<uid>/mail-preview")]
+pub async fn preview_email(
+    uid: Uuid,
+    pool: &DB,
+) -> Result<(ContentType, String), Error> {
+    let record = sqlx::query!("SELECT mail_template FROM events WHERE uid = $1", uid)
+        .fetch_one(pool.inner())
+        .await?;
+    let template = record.mail_template.ok_or_else(|| Error {
+        status: 400,
+        description: Some("No mail template".to_owned()),
+    })?;
 
+    let mail = generate_mail(template, Uuid::new_v4()).map_err(|s| Error {
+        status: 500,
+        description: Some(s),
+    })?;
+
+    Ok((ContentType::HTML, mail))
 }
