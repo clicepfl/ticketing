@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine};
 use lettre::transport::smtp::AsyncSmtpTransport;
 use lettre::{
     message::{header::ContentType, Mailbox, MessageBuilder},
@@ -13,9 +14,11 @@ use uuid::Uuid;
 
 use crate::config::config;
 
-fn generate_qrcode_svg(uid: Uuid) -> Result<String, String> {
-    qrcode_generator::to_svg_to_string(uid.to_string(), QrCodeEcc::Low, 200, None::<&str>)
-        .map_err(|e| e.to_string())
+fn generate_qrcode_png_base_64(uid: Uuid) -> Result<String, String> {
+    Ok(general_purpose::STANDARD_NO_PAD.encode(
+        qrcode_generator::to_png_to_vec(uid.to_string(), QrCodeEcc::Low, 200)
+            .map_err(|e| e.to_string())?,
+    ))
 }
 
 pub fn generate_mail(template: &str, uid: Uuid) -> Result<String, String> {
@@ -23,11 +26,15 @@ pub fn generate_mail(template: &str, uid: Uuid) -> Result<String, String> {
 
     let mut rewriter = HtmlRewriter::new(
         Settings {
-            element_content_handlers: vec![element!("div#qrcode", |el| {
-                el.set_inner_content(
-                    generate_qrcode_svg(uid)?.as_str(),
-                    lol_html::html_content::ContentType::Html,
-                );
+            element_content_handlers: vec![element!("img#qrcode", |el| {
+                el.set_attribute(
+                    "src",
+                    format!(
+                        "data:image/png;base64,{}",
+                        generate_qrcode_png_base_64(uid)?
+                    )
+                    .as_str(),
+                )?;
                 Ok(())
             })],
             ..Settings::default()
@@ -44,7 +51,7 @@ pub fn generate_mail(template: &str, uid: Uuid) -> Result<String, String> {
 
 pub async fn send_mail(
     template: &str,
-    participants: Vec<(String, Uuid)>,
+    participants: &[(String, Uuid)],
     event_name: &str,
 ) -> Result<(), String> {
     let sender = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config().smtp_server)
@@ -57,13 +64,11 @@ pub async fn send_mail(
         .pool_config(PoolConfig::default())
         .build();
 
-    for (mail_address, uid) in participants.into_iter() {
-        let mail = generate_mail(template, uid)?;
+    for (mail_address, uid) in participants.iter() {
+        let mail = generate_mail(template, *uid)?;
         let Ok(mail_address) = mail_address.parse::<Mailbox>() else {
             continue;
         };
-
-        println!("{}", mail);
 
         let message = MessageBuilder::new()
             .from(
