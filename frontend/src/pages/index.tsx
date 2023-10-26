@@ -1,30 +1,39 @@
-import { Dialog } from "@/components/Dialog";
+import { Dialog, DialogType, DialogValues } from "@/components/Dialog";
 import QRCodeScanner from "@/components/QRCodeScanner";
-import { useState } from "react";
+import { QrcodeSuccessCallback } from "html5-qrcode";
+import { useEffect, useState } from "react";
 
-type Values = {};
+var lock = false;
 
 export default function Home() {
-  const [decodedResults, setDecodedResults] = useState([]);
-  const [dialogValues, setDialogValues] = useState(null as Values | null);
+  const [dialogValues, setDialogValues] = useState(null as DialogValues | null);
 
-  function onScanSuccess(decodedText: any, decodedResult: any) {
+  const onScanSuccess: QrcodeSuccessCallback = (decodedText, decodedResult) => {
     // Stop scanning?
-    setDialogValues(null);
-    console.log(`Scan result: ${decodedText}`, decodedResult);
-  }
-  
-  function onScanFailure(error: any) {
-    console.log(`Scan result: ${error}`);
-  }
+    setDialogValues({
+      status: DialogType.WARNING,
+      warning: "Already served",
+      firstName: "Ludovic",
+      surname: "Mermod",
+      group: "smth",
+      sciper: "325084",
+    });
+    if (!lock) {
+      console.log(`Scan result: ${decodedText}`, decodedResult);
+      alert(decodedText);
+      lock = true;
+    }
+  };
 
   return (
-    <div>
+    <div className="h-screen flex flex-col justify-center">
       <QRCodeScanner
         qrCodeSuccessCallback={onScanSuccess}
-        qrCodeErrorCallback={onScanFailure}
+        fps={10}
+        qrbox={{ width: 250, height: 250 }}
       />
       <Dialog values={dialogValues} setValues={setDialogValues} />
+      <p>{JSON.stringify(dialogValues)}</p>
     </div>
   );
 }

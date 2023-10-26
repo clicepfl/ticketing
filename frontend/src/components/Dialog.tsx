@@ -1,4 +1,10 @@
+import { ParticipantInfos } from "@/api";
 import { useState } from "react";
+
+export type DialogValues =
+  | ({ status: DialogType.SUCCESS } & ParticipantInfos)
+  | ({ status: DialogType.WARNING; warning: string } & ParticipantInfos)
+  | { status: DialogType.ERROR; error?: string };
 
 export enum DialogType {
   SUCCESS = "success",
@@ -6,7 +12,7 @@ export enum DialogType {
   ERROR = "error",
 }
 
-function DialogCategory({ label }: { label: String }) {
+function DialogCategory({ label, value }: { label: string; value: string }) {
   const id = label
     .toLowerCase()
     .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -14,9 +20,8 @@ function DialogCategory({ label }: { label: String }) {
     .replace(/ /g, "");
 
   return (
-    <p className="">
-      {label + " : "}
-      {"Placeholder"}
+    <p>
+      {label}: {value}
     </p>
   );
 }
@@ -33,66 +38,76 @@ export function Dialog({
   values,
   setValues,
 }: {
-  values: {} | null;
-  setValues: (values: {} | null) => void;
+  values: DialogValues | null;
+  setValues: (values: DialogValues | null) => void;
 }) {
-  const [dialogType, setDialogType] = useState(DialogType.SUCCESS);
-  const dialogColor =
-    " border-[" +
-    (() => {
-      switch (dialogType) {
+  if (values !== null) {
+    const dialogColor = (() => {
+      switch (values.status) {
         case DialogType.SUCCESS:
-          return "#34d399";
+          return "border-[#34d399]";
         case DialogType.WARNING:
-          return "#facc15";
-        case DialogType.WARNING:
-          return "#ef4444";
+          return "border-[#facc15]";
+        case DialogType.ERROR:
+          return "border-[#ef4444]";
       }
-    })() +
-    "] ";
+    })();
 
-  const dialogSections = (() => {
-    switch (dialogType) {
-      case DialogType.SUCCESS:
-        return (
-          <>
-            <DialogCategory label={"First Name"} />
-            <DialogCategory label={"Surname"} />
-            <DialogCategory label={"Sciper"} />
-            <DialogCategory label={"Group"} />
-          </>
-        );
-      case DialogType.WARNING:
-        return (
-          <>
-            <DialogCategory label={"Warning"} />
-            <DialogCategory label={"First Name"} />
-            <DialogCategory label={"Surname"} />
-            <DialogCategory label={"Sciper"} />
-            <DialogCategory label={"Group"} />
-          </>
-        );
-      case DialogType.ERROR:
-        return (
-          <>
-            <DialogCategory label={"Error"} />
-          </>
-        );
-    }
-  })();
+    const dialogSections = (() => {
+      switch (values.status) {
+        case DialogType.SUCCESS:
+          return (
+            <>
+              <DialogCategory label={"First Name"} value={values.firstName} />
+              <DialogCategory label={"Surname"} value={values.surname} />
+              <DialogCategory label={"Sciper"} value={values.sciper} />
+              {values.group ? (
+                <DialogCategory label={"Group"} value={values.group} />
+              ) : (
+                <></>
+              )}
+            </>
+          );
+        case DialogType.WARNING:
+          return (
+            <>
+              <DialogCategory label={"Warning"} value={values.warning} />
+              <DialogCategory label={"First Name"} value={values.firstName} />
+              <DialogCategory label={"Surname"} value={values.surname} />
+              <DialogCategory label={"Sciper"} value={values.sciper} />
+              {values.group ? (
+                <DialogCategory label={"Group"} value={values.group} />
+              ) : (
+                <></>
+              )}
+            </>
+          );
+        case DialogType.ERROR:
+          return (
+            <>
+              {values.error ? (
+                <DialogCategory label={"Error"} value={values.error} />
+              ) : (
+                <p>An unknown error occurred</p>
+              )}
+            </>
+          );
+      }
+    })();
 
-  return values == null ? null : (
-    <div className="absolute top-0 left-0 flex w-full h-full justify-center items-center">
-      <div
-        className={
-          "dialog box-border p-10 bg-white border-4 flex flex-col gap-3 " +
-          dialogColor +
-          (values == null ? "visible" : "hidden")
-        }
-      >
-        {dialogSections}
-        <DialogCloseButton handleClick={() => setValues(null)} />
+    return (
+      <div className="absolute top-0 left-0 flex w-full h-full justify-center items-center">
+        <div
+          className={`dialog box-border p-10 bg-white border-4 flex flex-col gap-3 ${dialogColor} ${
+            values !== null ? "visible" : "hidden"
+          }`}
+        >
+          {dialogSections}
+          <DialogCloseButton handleClick={() => setValues(null)} />
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return <></>;
+  }
 }
