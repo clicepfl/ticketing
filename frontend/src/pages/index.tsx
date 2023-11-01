@@ -1,7 +1,7 @@
 import { getEvents, requireLogin } from "@/api";
 import {Event} from "@/models";
-import EditIcon from 'assets/edit.svg'
-import AddIcon from 'assets/add.svg'
+import EditIcon from 'assets/edit.svg';
+import AddIcon from 'assets/add.svg';
 import Link from "next/link";
 
 export function EventBox(props: { event: Event }) {
