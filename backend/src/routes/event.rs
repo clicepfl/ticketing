@@ -3,7 +3,11 @@ use rocket::{delete, get, http::ContentType, patch, post, serde::json::Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{mail::generate_mail, models::Event, DB};
+use crate::{
+    mail::{generate_mail, send_mail},
+    models::Event,
+    DB,
+};
 
 use super::{login::RequireLogin, Error};
 
@@ -81,10 +85,7 @@ pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<
 }
 
 #[get("/events/<uid>/mail-preview")]
-pub async fn preview_email(
-    uid: Uuid,
-    pool: &DB,
-) -> Result<(ContentType, String), Error> {
+pub async fn preview_email(uid: Uuid, pool: &DB) -> Result<(ContentType, String), Error> {
     let record = sqlx::query!("SELECT mail_template FROM events WHERE uid = $1", uid)
         .fetch_one(pool.inner())
         .await?;
@@ -99,4 +100,59 @@ pub async fn preview_email(
     })?;
 
     Ok((ContentType::HTML, mail))
+}
+
+#[post("/events/<uid>/send-mail-preview?<recipient>")]
+pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Result<(), Error> {
+    let record = sqlx::query!("SELECT name, mail_template FROM events WHERE uid = $1", uid)
+        .fetch_one(pool.inner())
+        .await?;
+    let template = record.mail_template.ok_or_else(|| Error {
+        status: 400,
+        description: Some("No mail template".to_owned()),
+    })?;
+
+    send_mail(&template, &[(recipient, Uuid::new_v4())], &record.name)
+        .await
+        .map_err(|s| Error {
+            status: 400,
+            description: Some(s),
+        })?;
+
+    Ok(())
+}
+
+#[post("/events/<uid>/send-mail")]
+pub async fn send_emails(uid: Uuid, pool: &DB) -> Result<(), Error> {
+    let record = sqlx::query!("SELECT name, mail_template FROM events WHERE uid = $1", uid)
+        .fetch_one(pool.inner())
+        .await?;
+    let template = record.mail_template.ok_or_else(|| Error {
+        status: 400,
+        description: Some("No mail template".to_owned()),
+    })?;
+
+    let participants = sqlx::query!(
+        "SELECT uid, email FROM participants WHERE event_uid = $1",
+        uid
+    )
+    .fetch_all(pool.inner())
+    .await?;
+
+    send_mail(
+        &template,
+        participants
+            .into_iter()
+            .map(|p| (p.email, p.uid))
+            .collect::<Vec<_>>()
+            .as_slice(),
+        &record.name,
+    )
+    .await
+    .map_err(|s| Error {
+        status: 400,
+        description: Some(s),
+    })?;
+
+    Ok(())
 }

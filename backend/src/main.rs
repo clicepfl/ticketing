@@ -74,6 +74,8 @@ async fn launch() -> _ {
                 routes::event::patch_event,
                 routes::event::delete_event,
                 routes::event::preview_email,
+                routes::event::send_preview_email,
+                routes::event::send_emails,
                 routes::participants::get_participants,
                 routes::participants::put_participants,
                 routes::participants::delete_participants,

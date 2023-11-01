@@ -94,3 +94,34 @@ export async function checkin(
     })
   ).json();
 }
+
+export async function sendPreviewEmail(
+  token: string,
+  eventId: string,
+  recipient: string
+): Promise<boolean> {
+  return (
+    await apiCall(
+      `event/${eventId}/send-mail-preview?recipient=${encodeURIComponent(
+        recipient
+      )}
+    `,
+      {
+        token,
+        method: "POST",
+      }
+    )
+  ).ok;
+}
+
+export async function sendEmails(
+  token: string,
+  eventId: string
+): Promise<boolean> {
+  return (
+    await apiCall(`event/${eventId}/send-mail`, {
+      token,
+      method: "POST",
+    })
+  ).ok;
+}
