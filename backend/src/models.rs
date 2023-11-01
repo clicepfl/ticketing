@@ -4,6 +4,7 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Event {
     pub uid: Uuid,
     pub date: NaiveDate,
@@ -13,6 +14,7 @@ pub struct Event {
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct Participant {
     pub uid: Uuid,
     pub event_uid: Uuid,
