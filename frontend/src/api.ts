@@ -1,11 +1,10 @@
-import assert from "assert";
 import {
   GetServerSideProps,
   GetServerSidePropsContext,
   GetServerSidePropsResult,
 } from "next";
 import { ADMIN_TOKEN, API_URL, SESSION_COOKIE_NAME } from "./config";
-import { Participant } from "./models";
+import { Participant, Error } from "./models";
 
 export type ParticipantInfos = {
   firstName: string;
@@ -64,7 +63,7 @@ export async function getEvents(token: string): Promise<Event[]> {
 export async function createEvent(
   eventForm: Event,
   token: string
-): Promise<Event> {
+): Promise<Event | Error> {
   return await (
     await apiCall("event", { token, body: eventForm, method: "POST" })
   ).json();
@@ -73,7 +72,7 @@ export async function updateEvent(
   uid: string,
   eventForm: Event,
   token: string
-): Promise<Event> {
+): Promise<Event | Error> {
   return await (
     await apiCall(`event/${uid}`, { token, body: eventForm, method: "PATCH" })
   ).json();
@@ -87,9 +86,9 @@ export async function deleteEvent(uid: string, token: string): Promise<Event> {
 export async function checkin(
   eventId: string,
   userId: string
-): Promise<Participant> {
+): Promise<Participant | Error> {
   return await (
-    await apiCall(`event/${eventId}/participants/${userId}/checkin`, {
+    await apiCall(`events/${eventId}/participants/${userId}/checkin`, {
       method: "POST",
     })
   ).json();
@@ -99,7 +98,7 @@ export async function sendPreviewEmail(
   token: string,
   eventId: string,
   recipient: string
-): Promise<boolean> {
+): Promise<boolean | Error> {
   return (
     await apiCall(
       `event/${eventId}/send-mail-preview?recipient=${encodeURIComponent(
@@ -117,7 +116,7 @@ export async function sendPreviewEmail(
 export async function sendEmails(
   token: string,
   eventId: string
-): Promise<boolean> {
+): Promise<boolean | Error> {
   return (
     await apiCall(`event/${eventId}/send-mail`, {
       token,

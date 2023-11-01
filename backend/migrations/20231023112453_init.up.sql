@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS participants (
   "surname" varchar(50) NOT NULL,
   "group" varchar(50),
   "has_checked_in" boolean NOT NULL DEFAULT false,
-  CONSTRAINT participant_pk PRIMARY KEY (uid)
+  CONSTRAINT participant_pk PRIMARY KEY (uid),
+  UNIQUE ("event_uid", "email")
 );
 
 ALTER TABLE participants DROP CONSTRAINT IF EXISTS participant_event_fk;

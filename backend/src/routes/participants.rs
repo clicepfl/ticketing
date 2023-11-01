@@ -12,7 +12,7 @@ pub struct ParticipantForm {
     pub email: String,
     pub first_name: String,
     pub surname: String,
-    pub group: String,
+    pub group: Option<String>,
 }
 
 #[get("/events/<uid>/participants")]

@@ -7,11 +7,13 @@ export type Event = EventForm & { uid: string; mailSent: boolean };
 
 export type Participant = {
   uid: string;
-  event_uid: string;
-  sciper: String;
-  email: String;
-  first_name: String;
-  surname: String;
+  eventUid: string;
+  sciper: string;
+  email: string;
+  firstName: string;
+  surname: string;
   group?: string;
-  has_checked_in: boolean;
+  hasCheckedIn: boolean;
 };
+
+export type Error = { status: number; description?: string };
