@@ -4,7 +4,7 @@ import {
   GetServerSidePropsResult,
 } from "next";
 import { ADMIN_TOKEN, API_URL, SESSION_COOKIE_NAME } from "./config";
-import { Participant, Error } from "./models";
+import { Participant, Error, Event, EventForm } from "./models";
 
 export type ParticipantInfos = {
   firstName: string;
@@ -61,25 +61,25 @@ export async function getEvents(token: string): Promise<Event[]> {
 }
 
 export async function createEvent(
-  eventForm: Event,
+  eventForm: EventForm,
   token: string
 ): Promise<Event | Error> {
   return await (
-    await apiCall("event", { token, body: eventForm, method: "POST" })
+    await apiCall("events", { token, body: eventForm, method: "POST" })
   ).json();
 }
 export async function updateEvent(
   uid: string,
-  eventForm: Event,
+  eventForm: EventForm,
   token: string
 ): Promise<Event | Error> {
   return await (
-    await apiCall(`event/${uid}`, { token, body: eventForm, method: "PATCH" })
+    await apiCall(`events/${uid}`, { token, body: eventForm, method: "PATCH" })
   ).json();
 }
 export async function deleteEvent(uid: string, token: string): Promise<Event> {
   return await (
-    await apiCall(`event/${uid}`, { token, method: "DELETE" })
+    await apiCall(`events/${uid}`, { token, method: "DELETE" })
   ).json();
 }
 

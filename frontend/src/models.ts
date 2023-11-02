@@ -1,7 +1,7 @@
 export type EventForm = {
   date: string;
   name: string;
-  mailTemplate: string;
+  mailTemplate?: string;
 };
 export type Event = EventForm & { uid: string; mailSent: boolean };
 

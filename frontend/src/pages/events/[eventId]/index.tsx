@@ -1,6 +1,83 @@
+import { createEvent, getEvents, requireLogin, updateEvent } from "@/api";
+import { Event, EventForm } from "@/models";
+import { Field, Form, Formik } from "formik";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import * as yup from "yup";
 
-export default function Event() {
-    const router = useRouter();
-    const eventId = router.query.eventId;
+const validationSchema = yup.object({
+  name: yup.string().required(),
+  date: yup.date().required(),
+  mailTemplate: yup.string(),
+});
+
+export default function Event({
+  event,
+  session,
+}: {
+  event?: Event;
+  session: string;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState(null as string | null);
+
+  async function saveEvent(values: EventForm) {
+    if (event) {
+      const res = await updateEvent(event?.uid, values, session);
+
+      if (!("uid" in res)) {
+        setError(res.description || "An unknown error occurred");
+      }
+    } else {
+      const res = await createEvent(values, session);
+
+      if ("uid" in res) {
+        router.push(`/events/${res.uid}`);
+      } else {
+        setError(res.description || "An unknown error occurred");
+      }
+    }
+  }
+
+  return (
+    <div>
+      <Formik
+        initialValues={{
+          name: event?.name || "",
+          date: event?.date || "",
+          mailTemplate: event?.mailTemplate,
+        }}
+        onSubmit={saveEvent}
+        validationSchema={validationSchema}
+      >
+        <Form className="flex flex-col">
+          <Field name="name" placeholder="Name" />
+          <Field name="date" type="date" />
+          <Field
+            name="mailTemplate"
+            type="textarea"
+            placeholder="Mail template (in HTML)"
+          />
+          <button type="submit">{event ? "Save" : "Create"}</button>
+        </Form>
+      </Formik>
+      {event ? (
+        <Link href={`/events/${event.uid}/checkin`}>Checkin</Link>
+      ) : (
+        <></>
+      )}
+      {error ? <p>{error}</p> : <></>}
+    </div>
+  );
 }
+
+export const getServerSide = requireLogin(async (context, session) => {
+  const events = await getEvents(session);
+  return {
+    props: {
+      session,
+      event: events.find((e) => e.uid === context.params?.eventId) || null,
+    },
+  };
+});
