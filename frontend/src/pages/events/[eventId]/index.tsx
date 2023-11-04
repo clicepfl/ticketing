@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import * as yup from "yup";
+import Editor from '@monaco-editor/react';
 
 const validationSchema = yup.object({
   name: yup.string().required(),
@@ -49,28 +50,34 @@ export default function Event({
   }
 
   return (
-    <div>
-      <Formik
-        initialValues={{
-          name: event?.name || "",
-          date: event?.date || "",
-          mailTemplate: event?.mailTemplate,
-        }}
-        onSubmit={saveEvent}
-        validationSchema={validationSchema}
-      >
-        <Form className="flex flex-col">
-          <Field name="name" placeholder="Name" />
-          <Field name="date" type="date" />
-          <Field
-            name="mailTemplate"
-            type="textarea"
-            placeholder="Mail template (in HTML)"
-          />
-          <button type="submit">{event ? "Save" : "Create"}</button>
-        </Form>
-      </Formik>
-      {event ? (
+    <div className="w-full flex justify-center">
+      <div className="flex-grow flex flex-col m-8 max-w-prose text-lg items-center">
+      <h1 className="text-3xl p-5 text-center font-bold">Clicketing</h1>
+
+        <Formik
+          initialValues={{
+            name: event?.name || "",
+            date: event?.date || ""
+          }}
+          onSubmit={saveEvent}
+          validationSchema={validationSchema}
+        >
+          <Form className="flex flex-col gap-4 w-full">
+          <button className="text-right font-semibold origin-right hover:underline underline-offset-5 hover:text-sky-800 hover:scale-110 ease-in duration-300" type="submit">{event ? "Save" : "Create"}</button>
+            <Field className="border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0" name="name" placeholder="Name" />
+            <Field className="border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0" 
+              name="date" 
+              type="date"
+               />
+            <Editor className="overflow-y-auto min-h-20 border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0"
+              height="70vh"
+              loading="Loading Mail Template..."
+              defaultLanguage="html"
+              defaultValue={event?.mailTemplate}
+            />
+          </Form>
+        </Formik>
+        {event ? (
         <>
           <Link href={`/events/${event.uid}/checkin`}>Checkin</Link>
           <button
@@ -118,7 +125,7 @@ export default function Event({
       )}
       {error ? <p>{error}</p> : <></>}
     </div>
-  );
+  </div>);
 }
 
 export const getServerSideProps = requireLogin(async (context, session) => {

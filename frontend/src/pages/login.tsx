@@ -20,7 +20,7 @@ export default function Login() {
     <div className="w-full flex justify-center">
       <div className="flex-grow flex flex-col m-8 max-w-prose text-lg items-center">
         <h1 className="text-3xl p-5 text-center font-bold">Clicketing</h1>
-        <UserIcon className="w-20 h-20 m-4 mb-1 stroke-current stroke-clic-blue" />
+        <UserIcon className="w-20 h-20 m-4 mb-1 stroke-clic-blue" />
         <h2 className="text-2xl font-semibold text-clic-blue">Admin Login</h2>
         <div className="flex p-3">
           <input

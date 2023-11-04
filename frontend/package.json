@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "@svgr/webpack": "^8.1.0",
     "@types/node": "20.8.5",
     "@types/react": "18.2.28",

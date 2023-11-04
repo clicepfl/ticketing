@@ -24,7 +24,7 @@ export function EventBox(props: { event: Event }) {
 
 export default function Home(props: { events: Event[] }) {
   return <div className="w-full flex justify-center">
-  <div className="flex-grow flex flex-col m-8 max-w-prose text-lg">
+  <div className="flex-grow flex flex-col m-8 max-w-prose text-lg gap-6">
     <h1 className="text-3xl p-5 text-center font-bold">Clicketing</h1>
     {props.events.map(event => <EventBox key={event.uid} event={event}></EventBox>)}
     <div className="p-4">
