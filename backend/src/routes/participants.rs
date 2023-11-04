@@ -2,9 +2,9 @@ use rocket::{delete, get, post, put, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{models::Participant, DB};
+use crate::{models::Participant, DB, error::Error};
 
-use super::{login::RequireLogin, Error};
+use super::login::RequireLogin;
 
 #[derive(Serialize, Deserialize)]
 pub struct ParticipantForm {

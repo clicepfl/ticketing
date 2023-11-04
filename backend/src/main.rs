@@ -1,8 +1,8 @@
+use error::Error;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::{Header, Method};
 use rocket::{catch, catchers, http::Status, routes, serde::json::Json};
 use rocket::{Request, Response};
-use routes::Error;
 
 use crate::config::config;
 
@@ -10,6 +10,7 @@ pub mod config;
 pub mod mail;
 pub mod models;
 pub mod routes;
+mod error;
 
 type DB = rocket::State<sqlx::PgPool>;
 

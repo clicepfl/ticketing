@@ -3,9 +3,9 @@ use rocket::{delete, get, patch, post, serde::json::Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{mail::send_mail_batch, models::Event, DB};
+use crate::{error::Error, mail::send_mail_batch, models::Event, DB};
 
-use super::{login::RequireLogin, Error};
+use super::login::RequireLogin;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,7 +52,7 @@ pub async fn patch_event(
     uid: Uuid,
     form: Json<EventForm>,
     pool: &DB,
-    _login: RequireLogin,
+    #[allow(non_snake_case)] _login: RequireLogin,
 ) -> Result<Json<Event>, Error> {
     sqlx::query_as!(
         Event,
@@ -74,7 +74,11 @@ pub async fn patch_event(
 }
 
 #[delete("/events/<uid>")]
-pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<(), Error> {
+pub async fn delete_event(
+    uid: Uuid,
+    pool: &DB,
+    #[allow(non_snake_case)] _login: RequireLogin,
+) -> Result<(), Error> {
     sqlx::query!("DELETE FROM events WHERE uid = $1", uid)
         .execute(pool.inner())
         .await
@@ -98,11 +102,7 @@ pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Resu
         &record.name,
         false,
     )
-    .await
-    .map_err(|s| Error {
-        status: 400,
-        description: Some(s),
-    })?;
+    .await?;
 
     Ok(())
 }
@@ -134,11 +134,7 @@ pub async fn send_emails(uid: Uuid, pool: &DB) -> Result<(), Error> {
         &record.name,
         true,
     )
-    .await
-    .map_err(|s| Error {
-        status: 400,
-        description: Some(s),
-    })?;
+    .await?;
 
     sqlx::query!("UPDATE events SET mail_sent = true WHERE uid = $1", uid)
         .execute(pool.inner())

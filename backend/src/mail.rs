@@ -13,12 +13,14 @@ use qrcode_generator::QrCodeEcc;
 use uuid::Uuid;
 
 use crate::config::config;
+use crate::error::Error;
 
-fn generate_qrcode_png(uid: Uuid) -> Result<Vec<u8>, String> {
-    qrcode_generator::to_png_to_vec(uid.to_string(), QrCodeEcc::Low, 200).map_err(|e| e.to_string())
+fn generate_qrcode_png(uid: Uuid) -> Result<Vec<u8>, Error> {
+    qrcode_generator::to_png_to_vec(uid.to_string(), QrCodeEcc::Low, 200)
+        .map_err(|e| Error::from(e.to_string()))
 }
 
-pub fn generate_mail(template: &str) -> Result<String, String> {
+pub fn generate_mail(template: &str) -> Result<String, Error> {
     let mut output = vec![];
 
     let mut rewriter = HtmlRewriter::new(
@@ -34,9 +36,9 @@ pub fn generate_mail(template: &str) -> Result<String, String> {
 
     rewriter
         .write(template.as_bytes())
-        .map_err(|e| e.to_string())?;
+        .map_err(Error::from_any)?;
 
-    String::from_utf8(output).map_err(|e| e.to_string())
+    String::from_utf8(output).map_err(|e| Error::from(e.to_string()))
 }
 
 async fn send_mail(
@@ -45,16 +47,18 @@ async fn send_mail(
     uid: Uuid,
     event_name: &str,
     sender: &AsyncSmtpTransport<Tokio1Executor>,
-) -> Result<(), String> {
+) -> Result<(), Error> {
     let qrcode = generate_qrcode_png(uid)?;
-    let mail_address = mail_address.parse::<Mailbox>().map_err(|e| e.to_string())?;
+    let mail_address = mail_address
+        .parse::<Mailbox>()
+        .map_err(|e| Error::from(e.to_string()))?;
 
     let message = MessageBuilder::new()
         .from(
             config()
                 .smtp_email
                 .parse::<Mailbox>()
-                .map_err(|e| e.to_string())?,
+                .map_err(Error::from_any)?,
         )
         .to(mail_address)
         .subject(format!("Registrations - {}", event_name))
@@ -66,17 +70,17 @@ async fn send_mail(
                         .singlepart(SinglePart::html(mail))
                         .singlepart(Attachment::new_inline("qrcode".to_owned()).body(
                             qrcode.clone(),
-                            ContentType::parse("image/png").map_err(|e| e.to_string())?,
+                            ContentType::parse("image/png").map_err(Error::from_any)?,
                         )),
                 )
                 .singlepart(Attachment::new("qrcode".to_owned()).body(
                     qrcode,
-                    ContentType::parse("image/png").map_err(|e| e.to_string())?,
+                    ContentType::parse("image/png").map_err(Error::from_any)?,
                 )),
         )
-        .map_err(|e| e.to_string())?;
+        .map_err(Error::from_any)?;
 
-    sender.send(message).await.map_err(|e| e.to_string())?;
+    sender.send(message).await.map_err(Error::from_any)?;
 
     Ok(())
 }
@@ -86,10 +90,10 @@ pub async fn send_mail_batch(
     participants: &[(String, Uuid)],
     event_name: &str,
     ignore_errors: bool,
-) -> Result<(), String> {
+) -> Result<(), Error> {
     let mail = generate_mail(template)?;
     let sender = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config().smtp_server)
-        .map_err(|e| e.to_string())?
+        .map_err(Error::from_any)?
         .credentials(Credentials::new(
             config().smtp_user.clone(),
             config().smtp_password.clone(),
