@@ -23,6 +23,7 @@ pub fn login(form: Json<LoginForm>) -> Status {
     }
 }
 
+/// Guard to ensure that a request has a valid authorization bearer token.
 pub struct RequireLogin;
 
 #[rocket::async_trait]

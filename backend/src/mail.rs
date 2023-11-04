@@ -20,6 +20,7 @@ fn generate_qrcode_png(uid: Uuid) -> Result<Vec<u8>, Error> {
         .map_err(|e| Error::from(e.to_string()))
 }
 
+/// Generate the mail from the template by inserting the `src` attribute of all `<img>` tag with the `qrcode` class.
 pub fn generate_mail(template: &str) -> Result<String, Error> {
     let mut output = vec![];
 

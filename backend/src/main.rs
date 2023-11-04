@@ -7,13 +7,14 @@ use rocket::{Request, Response};
 use crate::config::config;
 
 pub mod config;
+pub mod error;
 pub mod mail;
 pub mod models;
 pub mod routes;
-mod error;
 
 type DB = rocket::State<sqlx::PgPool>;
 
+/// Catch all HTTP errors and converts the body to a JSON containing the status
 #[catch(default)]
 fn default(status: Status, _: &Request) -> Json<Error> {
     Json(Error {
@@ -21,6 +22,8 @@ fn default(status: Status, _: &Request) -> Json<Error> {
         description: None,
     })
 }
+
+/// Fairing (middleware) to respond with an OK value to all OPTIONS requests. Necessary for the CORS validation of browsers.
 pub struct CORS;
 #[rocket::async_trait]
 impl Fairing for CORS {
@@ -55,8 +58,8 @@ async fn launch() -> _ {
 
     // Connect to database
     let pool = sqlx::PgPool::connect(config().database_url.as_str())
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     // Run migrations
     sqlx::migrate!().run(&pool).await.unwrap();

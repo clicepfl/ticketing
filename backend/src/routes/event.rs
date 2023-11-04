@@ -52,7 +52,7 @@ pub async fn patch_event(
     uid: Uuid,
     form: Json<EventForm>,
     pool: &DB,
-    #[allow(non_snake_case)] _login: RequireLogin,
+    _login: RequireLogin,
 ) -> Result<Json<Event>, Error> {
     sqlx::query_as!(
         Event,
@@ -74,11 +74,7 @@ pub async fn patch_event(
 }
 
 #[delete("/events/<uid>")]
-pub async fn delete_event(
-    uid: Uuid,
-    pool: &DB,
-    #[allow(non_snake_case)] _login: RequireLogin,
-) -> Result<(), Error> {
+pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<(), Error> {
     sqlx::query!("DELETE FROM events WHERE uid = $1", uid)
         .execute(pool.inner())
         .await
@@ -87,7 +83,7 @@ pub async fn delete_event(
 }
 
 #[post("/events/<uid>/send-mail-preview?<recipient>")]
-pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Result<(), Error> {
+pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB, _login: RequireLogin) -> Result<(), Error> {
     let record = sqlx::query!("SELECT name, mail_template FROM events WHERE uid = $1", uid)
         .fetch_one(pool.inner())
         .await?;
@@ -108,7 +104,7 @@ pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Resu
 }
 
 #[post("/events/<uid>/send-mail")]
-pub async fn send_emails(uid: Uuid, pool: &DB) -> Result<(), Error> {
+pub async fn send_emails(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<(), Error> {
     let record = sqlx::query!("SELECT name, mail_template FROM events WHERE uid = $1", uid)
         .fetch_one(pool.inner())
         .await?;
