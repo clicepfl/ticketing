@@ -1,4 +1,4 @@
-use base64::{engine::general_purpose, Engine};
+use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::AsyncSmtpTransport;
 use lettre::{
     message::{header::ContentType, Mailbox, MessageBuilder},
@@ -14,27 +14,17 @@ use uuid::Uuid;
 
 use crate::config::config;
 
-fn generate_qrcode_png_base_64(uid: Uuid) -> Result<String, String> {
-    Ok(general_purpose::STANDARD_NO_PAD.encode(
-        qrcode_generator::to_png_to_vec(uid.to_string(), QrCodeEcc::Low, 200)
-            .map_err(|e| e.to_string())?,
-    ))
+fn generate_qrcode_png(uid: Uuid) -> Result<Vec<u8>, String> {
+    qrcode_generator::to_png_to_vec(uid.to_string(), QrCodeEcc::Low, 200).map_err(|e| e.to_string())
 }
 
-pub fn generate_mail(template: &str, uid: Uuid) -> Result<String, String> {
+pub fn generate_mail(template: &str) -> Result<String, String> {
     let mut output = vec![];
 
     let mut rewriter = HtmlRewriter::new(
         Settings {
-            element_content_handlers: vec![element!("img#qrcode", |el| {
-                el.set_attribute(
-                    "src",
-                    format!(
-                        "data:image/png;base64,{}",
-                        generate_qrcode_png_base_64(uid)?
-                    )
-                    .as_str(),
-                )?;
+            element_content_handlers: vec![element!("img.qrcode", |el| {
+                el.set_attribute("src", "cid:qrcode")?;
                 Ok(())
             })],
             ..Settings::default()
@@ -49,11 +39,55 @@ pub fn generate_mail(template: &str, uid: Uuid) -> Result<String, String> {
     String::from_utf8(output).map_err(|e| e.to_string())
 }
 
-pub async fn send_mail(
+async fn send_mail(
+    mail: String,
+    mail_address: &str,
+    uid: Uuid,
+    event_name: &str,
+    sender: &AsyncSmtpTransport<Tokio1Executor>,
+) -> Result<(), String> {
+    let qrcode = generate_qrcode_png(uid)?;
+    let mail_address = mail_address.parse::<Mailbox>().map_err(|e| e.to_string())?;
+
+    let message = MessageBuilder::new()
+        .from(
+            config()
+                .smtp_email
+                .parse::<Mailbox>()
+                .map_err(|e| e.to_string())?,
+        )
+        .to(mail_address)
+        .subject(format!("Registrations - {}", event_name))
+        .header(ContentType::TEXT_HTML)
+        .multipart(
+            MultiPart::mixed()
+                .multipart(
+                    MultiPart::related()
+                        .singlepart(SinglePart::html(mail))
+                        .singlepart(Attachment::new_inline("qrcode".to_owned()).body(
+                            qrcode.clone(),
+                            ContentType::parse("image/png").map_err(|e| e.to_string())?,
+                        )),
+                )
+                .singlepart(Attachment::new("qrcode".to_owned()).body(
+                    qrcode,
+                    ContentType::parse("image/png").map_err(|e| e.to_string())?,
+                )),
+        )
+        .map_err(|e| e.to_string())?;
+
+    sender.send(message).await.map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+pub async fn send_mail_batch(
     template: &str,
     participants: &[(String, Uuid)],
     event_name: &str,
+    ignore_errors: bool,
 ) -> Result<(), String> {
+    let mail = generate_mail(template)?;
     let sender = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config().smtp_server)
         .map_err(|e| e.to_string())?
         .credentials(Credentials::new(
@@ -65,25 +99,21 @@ pub async fn send_mail(
         .build();
 
     for (mail_address, uid) in participants.iter() {
-        let mail = generate_mail(template, *uid)?;
-        let Ok(mail_address) = mail_address.parse::<Mailbox>() else {
-            continue;
-        };
-
-        let message = MessageBuilder::new()
-            .from(
-                config()
-                    .smtp_email
-                    .parse::<Mailbox>()
-                    .map_err(|e| e.to_string())?,
-            )
-            .to(mail_address)
-            .subject(format!("Registrations - {}", event_name))
-            .header(ContentType::TEXT_HTML)
-            .body(mail)
-            .map_err(|e| e.to_string())?;
-
-        sender.send(message).await.map_err(|e| e.to_string())?;
+        if let Err(e) = send_mail(
+            mail.clone(),
+            mail_address.as_str(),
+            *uid,
+            event_name,
+            &sender,
+        )
+        .await
+        {
+            if ignore_errors {
+                println!("Could not send mail to {mail_address}: {e:?}")
+            } else {
+                return Err(e);
+            }
+        }
     }
 
     Ok(())

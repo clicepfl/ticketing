@@ -101,9 +101,7 @@ export async function sendPreviewEmail(
 ): Promise<boolean | Error> {
   return (
     await apiCall(
-      `event/${eventId}/send-mail-preview?recipient=${encodeURIComponent(
-        recipient
-      )}
+      `events/${eventId}/send-mail-preview?recipient=${recipient}
     `,
       {
         token,
@@ -118,7 +116,7 @@ export async function sendEmails(
   eventId: string
 ): Promise<boolean | Error> {
   return (
-    await apiCall(`event/${eventId}/send-mail`, {
+    await apiCall(`events/${eventId}/send-mail`, {
       token,
       method: "POST",
     })

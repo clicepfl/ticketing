@@ -1,17 +1,14 @@
 use chrono::NaiveDate;
-use rocket::{delete, get, http::ContentType, patch, post, serde::json::Json};
+use rocket::{delete, get, patch, post, serde::json::Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{
-    mail::{generate_mail, send_mail},
-    models::Event,
-    DB,
-};
+use crate::{mail::send_mail_batch, models::Event, DB};
 
 use super::{login::RequireLogin, Error};
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EventForm {
     pub date: NaiveDate,
     pub name: String,
@@ -61,13 +58,14 @@ pub async fn patch_event(
         Event,
         r#"
         UPDATE events
-        SET date = $2, name = $3
+        SET date = $2, name = $3, mail_template= $4
         WHERE uid = $1
         RETURNING *
         "#,
         uid,
         form.date,
-        form.name
+        form.name,
+        form.mail_template
     )
     .fetch_one(pool.inner())
     .await
@@ -84,24 +82,6 @@ pub async fn delete_event(uid: Uuid, pool: &DB, _login: RequireLogin) -> Result<
         .map_err(Error::from)
 }
 
-#[get("/events/<uid>/mail-preview")]
-pub async fn preview_email(uid: Uuid, pool: &DB) -> Result<(ContentType, String), Error> {
-    let record = sqlx::query!("SELECT mail_template FROM events WHERE uid = $1", uid)
-        .fetch_one(pool.inner())
-        .await?;
-    let template = record.mail_template.ok_or_else(|| Error {
-        status: 400,
-        description: Some("No mail template".to_owned()),
-    })?;
-
-    let mail = generate_mail(template.as_str(), Uuid::new_v4()).map_err(|s| Error {
-        status: 500,
-        description: Some(s),
-    })?;
-
-    Ok((ContentType::HTML, mail))
-}
-
 #[post("/events/<uid>/send-mail-preview?<recipient>")]
 pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Result<(), Error> {
     let record = sqlx::query!("SELECT name, mail_template FROM events WHERE uid = $1", uid)
@@ -112,12 +92,17 @@ pub async fn send_preview_email(uid: Uuid, recipient: String, pool: &DB) -> Resu
         description: Some("No mail template".to_owned()),
     })?;
 
-    send_mail(&template, &[(recipient, Uuid::new_v4())], &record.name)
-        .await
-        .map_err(|s| Error {
-            status: 400,
-            description: Some(s),
-        })?;
+    send_mail_batch(
+        &template,
+        &[(recipient, Uuid::new_v4())],
+        &record.name,
+        false,
+    )
+    .await
+    .map_err(|s| Error {
+        status: 400,
+        description: Some(s),
+    })?;
 
     Ok(())
 }
@@ -139,7 +124,7 @@ pub async fn send_emails(uid: Uuid, pool: &DB) -> Result<(), Error> {
     .fetch_all(pool.inner())
     .await?;
 
-    send_mail(
+    send_mail_batch(
         &template,
         participants
             .into_iter()
@@ -147,12 +132,17 @@ pub async fn send_emails(uid: Uuid, pool: &DB) -> Result<(), Error> {
             .collect::<Vec<_>>()
             .as_slice(),
         &record.name,
+        true,
     )
     .await
     .map_err(|s| Error {
         status: 400,
         description: Some(s),
     })?;
+
+    sqlx::query!("UPDATE events SET mail_sent = true WHERE uid = $1", uid)
+        .execute(pool.inner())
+        .await?;
 
     Ok(())
 }

@@ -54,8 +54,8 @@ async fn launch() -> _ {
 
     // Connect to database
     let pool = sqlx::PgPool::connect(config().database_url.as_str())
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     // Run migrations
     sqlx::migrate!().run(&pool).await.unwrap();
@@ -73,7 +73,6 @@ async fn launch() -> _ {
                 routes::event::post_event,
                 routes::event::patch_event,
                 routes::event::delete_event,
-                routes::event::preview_email,
                 routes::event::send_preview_email,
                 routes::event::send_emails,
                 routes::participants::get_participants,

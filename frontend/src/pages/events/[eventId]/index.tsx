@@ -1,4 +1,11 @@
-import { createEvent, getEvents, requireLogin, updateEvent } from "@/api";
+import {
+  createEvent,
+  getEvents,
+  requireLogin,
+  sendEmails,
+  sendPreviewEmail,
+  updateEvent,
+} from "@/api";
 import { Event, EventForm } from "@/models";
 import { Field, Form, Formik } from "formik";
 import Link from "next/link";
@@ -13,14 +20,15 @@ const validationSchema = yup.object({
 });
 
 export default function Event({
-  event,
   session,
+  event,
 }: {
   event?: Event;
   session: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState(null as string | null);
+  const [previewMailRecipient, setPreviewMailRecipient] = useState("");
 
   async function saveEvent(values: EventForm) {
     if (event) {
@@ -63,7 +71,48 @@ export default function Event({
         </Form>
       </Formik>
       {event ? (
-        <Link href={`/events/${event.uid}/checkin`}>Checkin</Link>
+        <>
+          <Link href={`/events/${event.uid}/checkin`}>Checkin</Link>
+          <button
+            disabled={event.mailSent}
+            onClick={() => {
+              sendEmails(session, event.uid).then(() => router.reload());
+            }}
+          >
+            Send mail
+          </button>
+          <input
+            onChange={(e) => setPreviewMailRecipient(e.target.value)}
+            placeholder="Preview email recipient"
+          />
+          <button
+            onClick={() =>
+              (async () => {
+                setError(null);
+
+                let email = "";
+                try {
+                  email =
+                    (await yup
+                      .string()
+                      .email()
+                      .required()
+                      .validate(previewMailRecipient)) || "";
+                } catch (e: any) {
+                  setError("Recipient must be a valid email");
+                  return;
+                }
+
+                let res = await sendPreviewEmail(session, event.uid, email);
+                if (typeof res === "object") {
+                  setError(res.description || "An unknown error occured");
+                }
+              })()
+            }
+          >
+            Send preview mail
+          </button>
+        </>
       ) : (
         <></>
       )}
@@ -72,7 +121,7 @@ export default function Event({
   );
 }
 
-export const getServerSide = requireLogin(async (context, session) => {
+export const getServerSideProps = requireLogin(async (context, session) => {
   const events = await getEvents(session);
   return {
     props: {
