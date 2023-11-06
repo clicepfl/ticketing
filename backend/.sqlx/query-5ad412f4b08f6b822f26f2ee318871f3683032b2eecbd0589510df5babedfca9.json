@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO events(date, name) \n        VALUES($1, $2)\n        RETURNING *\n        ",
+  "query": "\n        UPDATE events\n        SET date = $2, name = $3, mail_template= $4\n        WHERE uid = $1\n        RETURNING *\n        ",
   "describe": {
     "columns": [
       {
@@ -20,22 +20,30 @@
       },
       {
         "ordinal": 3,
+        "name": "mail_template",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
         "name": "mail_sent",
         "type_info": "Bool"
       }
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Date",
-        "Varchar"
+        "Varchar",
+        "Text"
       ]
     },
     "nullable": [
       false,
       false,
       false,
+      true,
       false
     ]
   },
-  "hash": "8b6fb67c394ee1fbc4523b7239d6fc64a40a1950d0779b6c912857057c68b9ae"
+  "hash": "5ad412f4b08f6b822f26f2ee318871f3683032b2eecbd0589510df5babedfca9"
 }

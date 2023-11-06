@@ -20,6 +20,11 @@
       },
       {
         "ordinal": 3,
+        "name": "mail_template",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
         "name": "mail_sent",
         "type_info": "Bool"
       }
@@ -31,6 +36,7 @@
       false,
       false,
       false,
+      true,
       false
     ]
   },

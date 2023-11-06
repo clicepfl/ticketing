@@ -78,7 +78,7 @@ export default function Checkin(props: {
           p.sciper.toLowerCase().includes(filter.toLowerCase())
       )
     );
-  }, [filter]);
+  }, [filter, props.participants]);
 
   return (
     <div className="h-screen flex flex-col justify-center items-center gap-6">

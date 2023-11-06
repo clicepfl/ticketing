@@ -110,7 +110,7 @@ export default function Event({
           />
           <p className="text-sm text-center">
             The mail should be in HTML. To display the ticket, add an img tag
-            with the "qrcode" class.
+            with the &rdquo;qrcode&rdquo; class.
           </p>
           {event ? (
             <div className="flex justify-center items-center gap-8">

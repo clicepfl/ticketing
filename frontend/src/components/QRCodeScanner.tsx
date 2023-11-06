@@ -58,7 +58,7 @@ const Html5QrcodePlugin = (
         console.error("Failed to clear html5QrcodeScanner. ", error);
       });
     };
-  }, []);
+  }, [props]);
 
   return <div className="w-full" id={qrcodeRegionId} />;
 };
