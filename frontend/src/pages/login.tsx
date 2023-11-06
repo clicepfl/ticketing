@@ -1,5 +1,5 @@
 import { login, requireLogin } from "@/api";
-import { SESSION_COOKIE_NAME } from "@/config";
+import { API_URL, SESSION_COOKIE_NAME } from "@/config";
 import { useRouter } from "next/router";
 import { useCookies } from "react-cookie";
 import UserIcon from 'assets/user.svg';
