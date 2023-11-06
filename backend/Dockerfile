@@ -17,7 +17,7 @@ RUN cargo build --release
 # Copies build result into runtime image
 FROM runtime
 WORKDIR /app
-COPY --from=rust_build /app/target/release/ticketing ./roboclic
+COPY --from=rust_build /app/target/release/ticketing ./ticketing
 
 ENV RUST_LOG=info
 

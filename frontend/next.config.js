@@ -30,4 +30,5 @@ module.exports = {
   },
 
   reactStrictMode: true,
+  basePath: "/clicketing",
 };
