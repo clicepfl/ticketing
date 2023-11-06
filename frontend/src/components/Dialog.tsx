@@ -96,7 +96,7 @@ export function Dialog({
     })();
 
     return (
-      <div className="absolute top-0 left-0 flex w-full h-full justify-center items-center">
+      <div className="absolute top-0 left-0 flex w-full h-full justify-center items-center z-50">
         <div
           className={`dialog box-border p-10 bg-white border-4 flex flex-col gap-3 ${dialogColor} ${
             values !== null ? "visible" : "hidden"
