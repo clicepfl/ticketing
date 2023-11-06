@@ -60,7 +60,7 @@ const Html5QrcodePlugin = (
     };
   }, []);
 
-  return <div id={qrcodeRegionId} />;
+  return <div className="w-full" id={qrcodeRegionId} />;
 };
 
 export default Html5QrcodePlugin;

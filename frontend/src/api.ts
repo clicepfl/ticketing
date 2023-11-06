@@ -83,6 +83,12 @@ export async function deleteEvent(uid: string, token: string): Promise<Event> {
   ).json();
 }
 
+export async function getParticipants(eventId: string): Promise<Participant[]> {
+  return await (
+    await apiCall(`events/${eventId}/participants`, { method: "GET" })
+  ).json();
+}
+
 export async function checkin(
   eventId: string,
   userId: string
