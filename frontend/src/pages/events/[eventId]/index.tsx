@@ -9,7 +9,7 @@ import {
 import { Event, EventForm } from "@/models";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChangeEvent, InputHTMLAttributes, useState } from "react";
+import { ChangeEvent, InputHTMLAttributes, useEffect, useState } from "react";
 import * as yup from "yup";
 import Editor from "@monaco-editor/react";
 
@@ -37,6 +37,16 @@ export default function Event({
     date: event?.date,
     mailTemplate: event?.mailTemplate,
   } as Partial<EventForm>);
+  const [eventState, setEventState] = useState(event as Event | undefined);
+  const [hasChanged, setHasChanged] = useState(false);
+
+  useEffect(() => {
+    setHasChanged(
+      eventForm.date !== eventState?.date ||
+        eventForm.name !== eventState?.name ||
+        eventForm.mailTemplate !== eventState?.mailTemplate
+    );
+  }, [eventForm, eventState]);
 
   async function saveEvent() {
     setError(null);
@@ -44,11 +54,13 @@ export default function Event({
     try {
       let form = await validationSchema.validate(eventForm);
 
-      if (event) {
-        const res = await updateEvent(event?.uid, form, session);
+      if (eventState) {
+        const res = await updateEvent(eventState?.uid, form, session);
 
         if (!("uid" in res)) {
           setError(res.description || "An unknown error occurred");
+        } else {
+          setEventState(res);
         }
       } else {
         const res = await createEvent(form, session);
@@ -95,7 +107,7 @@ export default function Event({
             <input
               className="border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0 grow"
               type="date"
-              defaultValue={event?.date}
+              defaultValue={eventState?.date}
               onChange={updateField("date")}
             />
           </div>
@@ -105,14 +117,14 @@ export default function Event({
             height="70vh"
             loading="Loading Mail Template..."
             defaultLanguage="html"
-            defaultValue={event?.mailTemplate}
+            defaultValue={eventState?.mailTemplate}
             onChange={updateField("mailTemplate")}
           />
           <p className="text-sm text-center">
             The mail should be in HTML. To display the ticket, add an img tag
             with the &rdquo;qrcode&rdquo; class.
           </p>
-          {event ? (
+          {eventState ? (
             <div className="flex justify-center items-center gap-8">
               <input
                 className="border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0"
@@ -120,7 +132,11 @@ export default function Event({
                 placeholder="Preview email recipient"
               />
               <button
-                className="text-white text-center font-semibold hover:underline underline-offset-5 self-end px-2 py-1 rounded-lg bg-sky-800 hover:scale-105 ease-in duration-300 origin-right"
+                className={`text-white text-center font-semibold underline-offset-5 self-end px-2 py-1 rounded-lg ease-in duration-300 origin-right ${
+                  hasChanged
+                    ? "bg-gray-400 cursor-default"
+                    : "bg-sky-800 hover:underline hover:scale-105"
+                }`}
                 onClick={() =>
                   (async () => {
                     setError(null);
@@ -138,7 +154,11 @@ export default function Event({
                       return;
                     }
 
-                    let res = await sendPreviewEmail(session, event.uid, email);
+                    let res = await sendPreviewEmail(
+                      session,
+                      eventState.uid,
+                      email
+                    );
                     if (typeof res === "object") {
                       setError(res.description || "An unknown error occured");
                     }
@@ -152,22 +172,31 @@ export default function Event({
             <></>
           )}
           <div className=" mr-10 flex justify-center w-full gap-6">
-            {event ? (
+            {eventState ? (
               <>
                 <Link
                   className="text-white text-2xl text-center font-semibold hover:underline underline-offset-5 self-end px-4 py-2 rounded-lg bg-pink-800 hover:scale-105 ease-in duration-300"
-                  href={`/events/${event.uid}/checkin`}
+                  href={`/events/${eventState.uid}/checkin`}
                 >
                   Check-in page
                 </Link>
                 <button
-                  className="text-white text-2xl text-center font-semibold hover:underline underline-offset-5 self-end px-4 py-2 rounded-lg bg-sky-800 hover:scale-105 ease-in duration-300"
-                  disabled={event.mailSent}
+                  className={`text-white text-2xl text-center font-semibold underline-offset-5 self-end px-4 py-2 rounded-lg ease-in duration-300 ${
+                    eventState.mailSent || hasChanged
+                      ? "bg-gray-400 cursor-default"
+                      : "bg-sky-800 hover:underline hover:scale-105"
+                  }`}
+                  disabled={eventState.mailSent || hasChanged}
                   onClick={() => {
                     if (confirm("Are you sure you want to send the mails ?")) {
-                      sendEmails(session, event.uid).then(() =>
-                        router.reload()
-                      );
+                      sendEmails(session, eventState.uid)
+                        .then(() => getEvents(session))
+                        .then((event) => {
+                          setEventState(
+                            event.find((e) => e.uid === eventState.uid)
+                          );
+                          alert("Mails sent");
+                        });
                     }
                   }}
                 >
@@ -178,12 +207,17 @@ export default function Event({
               <></>
             )}
             <button
-              className="text-white text-center text-2xl font-semibold hover:underline underline-offset-5 self-end mr-5 px-4 py-2 rounded-lg bg-green-600 hover:scale-110 ease-in duration-300"
+              className={`text-white text-center text-2xl font-semibold underline-offset-5 self-end mr-5 px-4 py-2 rounded-lg ease-in duration-300 ${
+                !hasChanged
+                  ? "bg-gray-400 cursor-default"
+                  : "bg-green-600 hover:underline hover:scale-110"
+              }`}
               onClick={(e) => {
                 saveEvent();
               }}
+              disabled={!hasChanged}
             >
-              {event ? "Save" : "Create"}
+              {eventState ? "Save" : "Create"}
             </button>
           </div>
         </div>

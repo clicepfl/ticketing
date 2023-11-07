@@ -2,11 +2,12 @@ use rocket::{delete, get, post, put, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{models::Participant, DB, error::Error};
+use crate::{error::Error, models::Participant, DB};
 
 use super::login::RequireLogin;
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ParticipantForm {
     pub sciper: String,
     pub email: String,
