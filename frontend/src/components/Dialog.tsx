@@ -60,7 +60,6 @@ export function Dialog({
             <>
               <DialogCategory label={"First Name"} value={values.firstName} />
               <DialogCategory label={"Surname"} value={values.surname} />
-              <DialogCategory label={"Sciper"} value={values.sciper} />
               {values.group ? (
                 <DialogCategory label={"Group"} value={values.group} />
               ) : (
@@ -74,7 +73,6 @@ export function Dialog({
               <DialogCategory label={"Warning"} value={values.warning} />
               <DialogCategory label={"First Name"} value={values.firstName} />
               <DialogCategory label={"Surname"} value={values.surname} />
-              <DialogCategory label={"Sciper"} value={values.sciper} />
               {values.group ? (
                 <DialogCategory label={"Group"} value={values.group} />
               ) : (

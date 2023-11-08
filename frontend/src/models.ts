@@ -8,7 +8,6 @@ export type Event = EventForm & { uid: string; mailSent: boolean };
 export type Participant = {
   uid: string;
   eventUid: string;
-  sciper: string;
   email: string;
   firstName: string;
   surname: string;

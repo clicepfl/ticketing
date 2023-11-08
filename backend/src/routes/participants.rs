@@ -9,7 +9,6 @@ use super::login::RequireLogin;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ParticipantForm {
-    pub sciper: String,
     pub email: String,
     pub first_name: String,
     pub surname: String,
@@ -38,11 +37,10 @@ pub async fn put_participants(
 ) -> Result<(), Error> {
     for p in participants.into_inner().into_iter() {
         sqlx::query!(
-            r#"INSERT INTO participants ("event_uid", "sciper", "email", "first_name", "surname", "group") 
-            VALUES($1, $2, $3, $4, $5, $6) 
-            ON CONFLICT(email, event_uid) DO UPDATE SET "event_uid" = $1, "sciper" = $2, "email" = $3, "first_name" = $4, "surname" = $5, "group" = $6"#,
+            r#"INSERT INTO participants ("event_uid", "email", "first_name", "surname", "group") 
+            VALUES($1, $2, $3, $4, $5) 
+            ON CONFLICT(email, event_uid) DO UPDATE SET "event_uid" = $1, "email" = $2, "first_name" = $3, "surname" = $4, "group" = $5"#,
             uid,
-            p.sciper,
             p.email,
             p.first_name,
             p.surname,

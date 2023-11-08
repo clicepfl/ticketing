@@ -23,7 +23,7 @@ export default function Checkin(props: {
         onClick={() => tryCheckin(props.participant.uid)}
       >
         <p>{`${props.participant.firstName} ${props.participant.surname}`}</p>
-        <p className="text-sm text-gray-600">{`${props.participant.email} - ${props.participant.sciper}`}</p>
+        <p className="text-sm text-gray-600">{`${props.participant.email}`}</p>
       </div>
     );
   }
@@ -45,7 +45,6 @@ export default function Checkin(props: {
           return {
             firstName: response.firstName,
             surname: response.surname,
-            sciper: response.sciper,
             group: response.group,
             ...status,
           };
@@ -74,8 +73,7 @@ export default function Checkin(props: {
         (p) =>
           p.email.toLowerCase().includes(filter.toLowerCase()) ||
           p.firstName.toLowerCase().includes(filter.toLowerCase()) ||
-          p.surname.toLowerCase().includes(filter.toLowerCase()) ||
-          p.sciper.toLowerCase().includes(filter.toLowerCase())
+          p.surname.toLowerCase().includes(filter.toLowerCase())
       )
     );
   }, [filter, props.participants]);
@@ -108,7 +106,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       eventId: context.params?.eventId,
-      participants: await getParticipants(context.params?.eventId as string)
+      participants: await getParticipants(context.params?.eventId as string),
     },
   };
 };

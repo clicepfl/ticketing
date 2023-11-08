@@ -18,7 +18,6 @@ pub struct Event {
 pub struct Participant {
     pub uid: Uuid,
     pub event_uid: Uuid,
-    pub sciper: String,
     pub email: String,
     pub first_name: String,
     pub surname: String,
