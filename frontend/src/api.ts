@@ -12,6 +12,11 @@ export type ParticipantInfos = {
   group?: string;
 };
 
+/**
+ * Middleware for the getServerSideProps function. Extract and checks (on server side) a valid admin token from the request.
+ * @param onSuccess called with the context of the request and the admin token, if the authorization succeeded.
+ * @param onFailure called with the context of the request, if the authorization failed. If undefined, automatically redirects to the login page.
+ */
 export function requireLogin<T extends { [key: string]: any }>(
   onSuccess: (
     context: GetServerSidePropsContext,
