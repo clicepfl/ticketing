@@ -15,31 +15,26 @@
       },
       {
         "ordinal": 2,
-        "name": "sciper",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 3,
         "name": "email",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "first_name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "surname",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "group",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "has_checked_in",
         "type_info": "Bool"
       }
@@ -51,7 +46,6 @@
       ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,

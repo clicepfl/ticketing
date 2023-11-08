@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO participants (\"event_uid\", \"email\", \"first_name\", \"surname\", \"group\") \n            VALUES($1, $2, $3, $4, $5) \n            ON CONFLICT(email, event_uid) DO UPDATE SET \"event_uid\" = $1, \"email\" = $2, \"first_name\" = $3, \"surname\" = $4, \"group\" = $5",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "aedf964a707b480495d7dc7e0e51391493fc0dbc9a9325105a5565f2fa2ba913"
+}
