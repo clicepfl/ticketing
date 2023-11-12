@@ -98,7 +98,7 @@ export default function Event({
             <input
               className="border-[3px] border-clic-blue rounded-lg px-2 focus:border-clic-red origin-right outline outline-0 grow"
               placeholder="Name"
-              defaultValue={event?.name}
+              defaultValue={eventState?.name}
               onChange={updateField("name")}
             />
           </div>
